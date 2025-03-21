@@ -5,6 +5,8 @@ let timerDuration = 2 * 60 * 60; // 2 hours in seconds
 let timerInterval;
 let tabSwitchCount = 0;
  // Minimum height allowed
+let originalWidth = Math.max(window.screen.width, window.screen.height); // Handle portrait & landscape modes
+let originalHeight = Math.min(window.screen.width, window.screen.height);
 let violationCount = 0; // Unified counter for tab switch + resize
 const maxViolations = 1; // Max allowed violations before auto-submission
 // Questions & Notes Data
@@ -208,24 +210,37 @@ document.addEventListener("keydown", (event) => {
     }
 });
 
-function detectSplitScreen() {
-    let originalWidth = screen.width;
-    let originalHeight = screen.height;
+function checkResize() {
+    let currentWidth = window.innerWidth;
+    let currentHeight = window.innerHeight;
 
-    setInterval(() => {
-        let currentWidth = window.innerWidth;
-        let currentHeight = window.innerHeight;
+    // Calculate how much the width & height have changed in percentage
+    let widthChange = (currentWidth / originalWidth) * 100;
+    let heightChange = (currentHeight / originalHeight) * 100;
 
-        // Detect split-screen if width or height is significantly smaller than original
-        if (
-            (currentWidth < originalWidth * 0.7 || currentHeight < originalHeight * 0.7) &&
-            !quizPaused
-        ) {
-            alert("Split-screen or multi-window mode detected! Quiz paused. Enter password to resume.");
-            pauseQuiz();
+    console.log(`Width: ${widthChange}% | Height: ${heightChange}%`);
+
+    // ✅ TRIGGER WARNING ONLY IF:
+    // - Width or height shrinks below 70% of the original screen size
+    // - The change is NOT just a normal screen rotation
+    if ((widthChange < 70 || heightChange < 70) && Math.abs(originalWidth - originalHeight) > 250) {
+        resizeCount++;
+        alert(`Warning! Your screen size is too small (${resizeCount}/${maxResizeWarnings} warnings).`);
+
+        if (resizeCount >= maxResizeWarnings) {
+            alert("You have resized the window too many times. Your quiz is being submitted.");
+            submitQuiz();
         }
-    }, 1000); // Check every second
+    }
 }
+
+// ✅ Listen for screen resize events
+window.addEventListener("resize", checkResize);
+
+// ✅ Also check when the device orientation changes (for mobile & tablets)
+window.addEventListener("orientationchange", () => {
+    setTimeout(checkResize, 700); // Small delay to allow screen size stabilization
+});
 
 // Call this function when the quiz starts
 detectSplitScreen();
