@@ -4,9 +4,10 @@ let answers = JSON.parse(localStorage.getItem("quizAnswers")) || new Array(total
 let timerDuration = 2 * 60 * 60; // 2 hours in seconds
 let timerInterval;
 let tabSwitchCount = 0;
+let originalWidth = window.innerWidth;
+let originalHeight = window.innerHeight;
 let resizeCount = 0;
-const minWidth = 800;  // Minimum width allowed for the quiz
-const minHeight = 600; // Minimum height allowed
+ // Minimum height allowed
 let violationCount = 0; // Unified counter for tab switch + resize
 const maxViolations = 1; // Max allowed violations before auto-submission
 // Questions & Notes Data
@@ -212,13 +213,19 @@ document.addEventListener("keydown", (event) => {
 
 // **Detect Split Screen or Window Resize**
 window.addEventListener("resize", () => {
-    if (window.innerWidth < minWidth || window.innerHeight < minHeight) {
-        resizeCount++;
-        alert(`Warning! Your window size is too small. (${resizeCount}/3 warnings)`);
+    let currentWidth = window.innerWidth;
+    let currentHeight = window.innerHeight;
 
-        if (resizeCount >= 3) {
-            alert("You have resized the window too many times. Your quiz is being submitted.");
-            submitQuiz();
+    // ✅ Only detect split-screen if screen was originally large enough
+    if (originalWidth > 700 && originalHeight > 500) { // Ignore small devices initially
+        if (currentWidth < originalWidth * 0.7 || currentHeight < originalHeight * 0.7) {
+            resizeCount++;
+            alert(`Warning! Your screen size is too small (${resizeCount}/${maxResizeWarnings} warnings).`);
+
+            if (resizeCount >= maxResizeWarnings) {
+                alert("You have resized the window too many times. Your quiz is being submitted.");
+                submitQuiz();
+            }
         }
     }
 });
