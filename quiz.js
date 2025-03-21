@@ -4,16 +4,12 @@ let answers = JSON.parse(localStorage.getItem("quizAnswers")) || new Array(total
 let timerDuration = 2 * 60 * 60; // 2 hours in seconds
 let timerInterval;
 let tabSwitchCount = 0;
-let originalWidth = window.screen.width;
-let originalHeight = window.screen.height;
 let resizeCount = 0;
 const minWidth = 800;  // Minimum width allowed for the quiz
 const minHeight = 600; // Minimum height allowed
 let violationCount = 0; // Unified counter for tab switch + resize
-const maxViolations = 1; 
-const maxResizeWarnings = 3;// Max allowed violations before auto-submission
+const maxViolations = 1; // Max allowed violations before auto-submission
 // Questions & Notes Data
-
 const questions = [
     {
         question: "What is the capital of France?",
@@ -216,15 +212,11 @@ document.addEventListener("keydown", (event) => {
 
 // **Detect Split Screen or Window Resize**
 window.addEventListener("resize", () => {
-    let currentWidth = window.innerWidth;
-    let currentHeight = window.innerHeight;
-
-    // Check if screen size is reduced below 70% of the original
-    if (currentWidth < originalWidth * 0.7 || currentHeight < originalHeight * 0.7) {
+    if (window.innerWidth < minWidth || window.innerHeight < minHeight) {
         resizeCount++;
-        alert(`Warning! Your screen size is too small (${resizeCount}/${maxResizeWarnings} warnings).`);
+        alert(`Warning! Your window size is too small. (${resizeCount}/3 warnings)`);
 
-        if (resizeCount >= maxResizeWarnings) {
+        if (resizeCount >= 3) {
             alert("You have resized the window too many times. Your quiz is being submitted.");
             submitQuiz();
         }
