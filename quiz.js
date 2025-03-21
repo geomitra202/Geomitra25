@@ -4,8 +4,8 @@ let answers = JSON.parse(localStorage.getItem("quizAnswers")) || new Array(total
 let timerDuration = 2 * 60 * 60; // 2 hours in seconds
 let timerInterval;
 let tabSwitchCount = 0;
-let originalWidth = window.innerWidth;
-let originalHeight = window.innerHeight;
+let originalWidth = screen.width;  // Full device width
+let originalHeight = screen.height;
 let resizeCount = 0;
  // Minimum height allowed
 let violationCount = 0; // Unified counter for tab switch + resize
@@ -216,16 +216,18 @@ window.addEventListener("resize", () => {
     let currentWidth = window.innerWidth;
     let currentHeight = window.innerHeight;
 
-    // ✅ Only detect split-screen if screen was originally large enough
-    if (originalWidth > 700 && originalHeight > 500) { // Ignore small devices initially
-        if (currentWidth < originalWidth * 0.7 || currentHeight < originalHeight * 0.7) {
-            resizeCount++;
-            alert(`Warning! Your screen size is too small (${resizeCount}/${maxResizeWarnings} warnings).`);
+    // Calculate percentage change in width and height
+    let widthChange = (currentWidth / originalWidth) * 100;
+    let heightChange = (currentHeight / originalHeight) * 100;
 
-            if (resizeCount >= maxResizeWarnings) {
-                alert("You have resized the window too many times. Your quiz is being submitted.");
-                submitQuiz();
-            }
+    // ✅ Detect if screen width or height drops below 70% of the original size
+    if (widthChange < 70 || heightChange < 70) {
+        resizeCount++;
+        alert(`Warning! Your screen size is too small (${resizeCount}/${maxResizeWarnings} warnings).`);
+
+        if (resizeCount >= maxResizeWarnings) {
+            alert("You have resized the window too many times. Your quiz is being submitted.");
+            submitQuiz();
         }
     }
 });
