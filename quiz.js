@@ -4,24 +4,59 @@ let answers = JSON.parse(localStorage.getItem("quizAnswers")) || new Array(total
 let timerDuration = 2 * 60 * 60; // 2 hours in seconds
 let timerInterval;
 let tabSwitchCount = 0;
+let originalWidth = window.screen.width;
+let originalHeight = window.screen.height;
 let resizeCount = 0;
 const minWidth = 800;  // Minimum width allowed for the quiz
 const minHeight = 600; // Minimum height allowed
 let violationCount = 0; // Unified counter for tab switch + resize
-const maxViolations = 1; // Max allowed violations before auto-submission
+const maxViolations = 1; 
+const maxResizeWarnings = 3;// Max allowed violations before auto-submission
 // Questions & Notes Data
+
 const questions = [
-    "What is the capital of France?",
-    "Which is the largest ocean on Earth?",
-    "At what temperature does water boil?",
-    "Which planet is closest to the Sun?",
-    "What is the Pythagorean theorem used for?",
-    "Which element has the symbol 'O'?",
-    "What is Einstein's famous equation?",
-    "What is the square root of 64?",
-    "How many continents are there on Earth?",
-    "Who discovered gravity?"
+    {
+        question: "What is the capital of France?",
+        image: "earth.png",
+    },
+    {
+        question: "Which is the largest ocean on Earth?",
+        image: "images/ocean.png",
+    },
+    {
+        question: "At what temperature does water boil?",
+        image: "images/boiling.png",
+    },
+    {
+        question: "Which planet is closest to the Sun?",
+        image: "images/mercury.png",
+    },
+    {
+        question: "What is the Pythagorean theorem used for?",
+        image: "images/pythagoras.png",
+    },
+    {
+        question: "Which element has the symbol 'O'?",
+        image: "images/oxygen.png",
+    },
+    {
+        question: "What is Einstein's famous equation?",
+        image: "images/einstein.png",
+    },
+    {
+        question: "What is the square root of 64?",
+        image: "images/square_root.png",
+    },
+    {
+        question: "How many continents are there on Earth?",
+        image: "images/continents.png",
+    },
+    {
+        question: "Who discovered gravity?",
+        image: "images/gravity.png",
+    }
 ];
+
 
 const notes = [
     "The capital city of France is famous for the Eiffel Tower.",
@@ -47,9 +82,15 @@ function saveAnswer() {
 
 // Update UI Correctly
 function updateQuestionUI() {
-    document.getElementById("question-text").innerText = `${currentQuestion + 1}. ${questions[currentQuestion]}`;
-    document.getElementById("notes-box").innerText = notes[currentQuestion];
+    document.getElementById("question-text").innerText = `${currentQuestion + 1}. ${questions[currentQuestion].question}`;
+
+    // ✅ Dynamically update the question image
+    const questionImage = document.getElementById("question-image");
+    questionImage.src = questions[currentQuestion].image;
+    questionImage.alt = "Question Image";
+
     document.getElementById("answer-box").value = answers[currentQuestion] || "";
+    document.getElementById("notes-box").innerText = notes[currentQuestion];
 
     document.getElementById("prev-btn").disabled = currentQuestion === 0;
 
@@ -61,6 +102,7 @@ function updateQuestionUI() {
         document.getElementById("submit-btn").style.display = "none";
     }
 }
+
 
 // Move to Next Question
 function nextQuestion() {
@@ -174,11 +216,15 @@ document.addEventListener("keydown", (event) => {
 
 // **Detect Split Screen or Window Resize**
 window.addEventListener("resize", () => {
-    if (window.innerWidth < minWidth || window.innerHeight < minHeight) {
-        resizeCount++;
-        alert(`Warning! Your window size is too small. (${resizeCount}/3 warnings)`);
+    let currentWidth = window.innerWidth;
+    let currentHeight = window.innerHeight;
 
-        if (resizeCount >= 3) {
+    // Check if screen size is reduced below 70% of the original
+    if (currentWidth < originalWidth * 0.7 || currentHeight < originalHeight * 0.7) {
+        resizeCount++;
+        alert(`Warning! Your screen size is too small (${resizeCount}/${maxResizeWarnings} warnings).`);
+
+        if (resizeCount >= maxResizeWarnings) {
             alert("You have resized the window too many times. Your quiz is being submitted.");
             submitQuiz();
         }
